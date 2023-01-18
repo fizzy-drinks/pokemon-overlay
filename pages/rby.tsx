@@ -1,6 +1,8 @@
 import { GlobalStyle } from "components/GlobalStyle";
+import HealthBar from "components/HealthBar";
 import TypeBadge from "components/TypeBadge";
 import TypeColored from "components/TypeColored";
+import getHpColor from "lib/helpers/getHpColor";
 import useMapperValue from "lib/hooks/useMapperValue";
 import useMoveList from "lib/hooks/useMoveList";
 import usePokedex from "lib/hooks/usePokedex";
@@ -8,7 +10,7 @@ import Move from "lib/types/Move";
 import { FC } from "react";
 
 const config = {
-  useBattleUi: false,
+  useBattleUi: true,
 };
 
 const MoveRow: FC<{
@@ -39,7 +41,7 @@ type Pokemon = {
   nickname?: string;
   type1: string;
   type2: string;
-  level?: number;
+  level: number;
   hp: number;
   maxHp: number;
   stats: {
@@ -62,8 +64,9 @@ const BattlePokemonData: FC<{
   pokemon: Pokemon;
   movelist: Move[];
   pokedex: { number: number; name: string }[];
-  compact?: boolean;
-}> = ({ pokemon, movelist, pokedex, compact = false }) => {
+  mode: "mini" | "compact" | "full";
+  hideHp?: boolean;
+}> = ({ pokemon, movelist, pokedex, mode, hideHp = false }) => {
   const moves: [string | null, number | null][] = [
     [pokemon.move1, pokemon.move1pp],
     [pokemon.move2, pokemon.move2pp],
@@ -79,6 +82,35 @@ const BattlePokemonData: FC<{
           .toString()
           .padStart(3, "0")}.png`
       : "https://archives.bulbagarden.net/media/upload/6/62/Ghost_I_purple.png";
+
+  if (mode === "mini") {
+    return (
+      <div
+        style={{
+          width: "60px",
+          marginRight: "10px",
+          display: "inline-block",
+          textAlign: "right",
+        }}
+      >
+        <img
+          src={sprite}
+          style={{
+            float: "left",
+            height: "60px",
+            width: "60px",
+          }}
+        />
+        <HealthBar percent={pokemon.hp / pokemon.maxHp} />
+        <div>
+          <small style={{ color: getHpColor(pokemon.hp / pokemon.maxHp) }}>
+            {pokemon.hp}HP
+          </small>
+        </div>
+        {!hideHp && <div>:L{pokemon.level}</div>}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -109,32 +141,16 @@ const BattlePokemonData: FC<{
           </small>
         </div>
       </div>
-      <div
-        style={{
-          width: "100%",
-          border: "1px solid white",
-          borderRadius: "2px",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${(pokemon.hp / pokemon.maxHp) * 100}%`,
-            backgroundColor: `hsl(${
-              (pokemon.hp / pokemon.maxHp) * 130
-            }, 100%, 50%)`,
-            height: "12px",
-            transition: "all 300ms linear",
-          }}
-        />
-      </div>
+      <HealthBar percent={pokemon.hp / pokemon.maxHp} />
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <span>:L{pokemon.level}</span>
-        <span>
-          {pokemon.hp}/{pokemon.maxHp}
-        </span>
+        {!hideHp && (
+          <span>
+            {pokemon.hp}/{pokemon.maxHp}
+          </span>
+        )}
       </div>
-      {!compact && (
+      {mode === "full" && (
         <div
           style={{
             display: "flex",
@@ -236,11 +252,26 @@ export default function HomePage() {
   });
 
   const battleType = useMapperValue<"Wild" | "Trainer" | "None">("battle.type");
+
+  const battleAllySpecies = useMapperValue<string>(
+    "battle.yourPokemon.species"
+  );
+  const battleAllyNickname = useMapperValue<string>(
+    "battle.yourPokemon.nickname"
+  );
+  const currentBattlePokemon = party.find(
+    (partyPokemon) =>
+      partyPokemon.pokemon.species === battleAllySpecies &&
+      partyPokemon.pokemon.nickname === battleAllyNickname
+  );
+
   const battle = {
     ally: {
-      species: useMapperValue<string>("battle.yourPokemon.species") ?? "",
+      species: battleAllySpecies ?? "",
+      nickname: battleAllyNickname ?? "",
       type1: useMapperValue<string>("battle.yourPokemon.type1") ?? "Normal",
       type2: useMapperValue<string>("battle.yourPokemon.type2") ?? "Normal",
+      level: currentBattlePokemon?.pokemon.level ?? 0,
       hp: useMapperValue<number>("battle.yourPokemon.battleStatHp") ?? 0,
       maxHp: useMapperValue<number>("battle.yourPokemon.battleStatMaxHp") ?? 0,
       move1: useMapperValue<string>("battle.yourPokemon.move1"),
@@ -332,13 +363,46 @@ export default function HomePage() {
             <BattlePokemonData
               pokedex={pokedex}
               movelist={movelist}
-              pokemon={battle.ally}
+              pokemon={battle.foe}
+              mode="compact"
+              hideHp
             />
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                alignItems: "center",
+                justifyContent: "stretch",
+                margin: "5px",
+              }}
+            >
+              <div style={{ width: "100%", borderBottom: "1px solid white" }} />
+              VS
+              <div style={{ width: "100%", borderBottom: "1px solid white" }} />
+            </div>
             <BattlePokemonData
               pokedex={pokedex}
               movelist={movelist}
-              pokemon={battle.foe}
+              pokemon={battle.ally}
+              mode="full"
             />
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              {party
+                .filter(
+                  (member) =>
+                    member.partyIndex < teamCount &&
+                    member.partyIndex !== currentBattlePokemon?.partyIndex
+                )
+                .map((member) => (
+                  <BattlePokemonData
+                    key={member.partyIndex}
+                    pokedex={pokedex}
+                    movelist={movelist}
+                    pokemon={member.pokemon}
+                    mode="mini"
+                  />
+                ))}
+            </div>
           </section>
         ) : (
           <section id="ow">
@@ -350,7 +414,7 @@ export default function HomePage() {
                     pokedex={pokedex}
                     movelist={movelist}
                     pokemon={member.pokemon}
-                    compact={i !== 0}
+                    mode={i !== 0 ? "compact" : "full"}
                   />
                 </div>
               ))}
