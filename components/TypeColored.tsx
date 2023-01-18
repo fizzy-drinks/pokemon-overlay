@@ -7,12 +7,19 @@ const TypeColored: FC<PropsWithChildren<{ type?: string }>> = ({
   const typeColors = {
     Normal: "white",
     Fire: "orange",
-    Water: "blue",
+    Water: "#09c",
     Grass: "lime",
     Poison: "#e9c",
-    Ghost: "purple",
+    Ghost: "#cac",
     Flying: "lightblue",
     Bug: "#cc4",
+    Ground: "#960",
+    Rock: "#a96",
+    Electric: "#ec0",
+    Psychic: "#c0c",
+    Ice: "#adf",
+    Fighting: "#f33",
+    Dragon: "#06a",
   };
 
   return (
