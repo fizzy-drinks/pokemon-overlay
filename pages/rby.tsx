@@ -136,10 +136,10 @@ const BattlePokemonData: FC<{
           <table style={{ flexGrow: 1 }}>
             <thead>
               <tr>
-                <td style={{ width: "100%" }}>Move</td>
-                <td>PP</td>
-                <td>Pwr</td>
-                <td>Acc</td>
+                <th>MOVE</th>
+                <th>PP</th>
+                <th>POW</th>
+                <th>ACC</th>
               </tr>
             </thead>
             <tbody>

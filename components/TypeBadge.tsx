@@ -6,7 +6,7 @@ const TypeBadge: FC<PropsWithChildren<{ type?: string }>> = ({
 }) => {
   const typeColors = {
     Normal: "salmon",
-    Fire: "orange",
+    Fire: "#c60",
     Water: "#06a",
     Grass: "green",
     Poison: "#939",
