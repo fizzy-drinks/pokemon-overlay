@@ -8,7 +8,7 @@ import Move from "lib/types/Move";
 import { FC } from "react";
 
 const config = {
-  useBattleUi: true,
+  useBattleUi: false,
 };
 
 const MoveRow: FC<{ move?: Move; pp: number | null }> = ({ move, pp }) => {
@@ -26,6 +26,7 @@ const MoveRow: FC<{ move?: Move; pp: number | null }> = ({ move, pp }) => {
 
 type Pokemon = {
   species: string;
+  nickname?: string;
   type1: string;
   type2: string;
   level?: number;
@@ -73,16 +74,23 @@ const BattlePokemonData: FC<{
     <div
       style={{
         width: "100%",
-        marginBottom: "5px",
+        marginBottom: "15px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <div
+        style={{ display: "flex", alignItems: "center", marginBottom: "5px" }}
+      >
         <img
           src={sprite}
-          style={{ float: "left", height: "60px", width: "60px" }}
+          style={{
+            float: "left",
+            height: "60px",
+            width: "60px",
+            marginRight: "10px",
+          }}
         />
         <div>
-          <h3>{pokemon.species}</h3>
+          <h3>{pokemon.nickname || pokemon.species}</h3>
           <small>
             <TypeBadge>{pokemon.type1}</TypeBadge>{" "}
             {pokemon.type2 !== pokemon.type1 && (
@@ -191,6 +199,7 @@ export default function HomePage() {
       partyIndex: i,
       pokemon: {
         species: useMapperValue<string>(`player.team.${i}.species`) ?? "",
+        nickname: useMapperValue<string>(`player.team.${i}.nickname`) ?? "",
         type1: useMapperValue<string>(`player.team.${i}.type1`) ?? `Normal`,
         type2: useMapperValue<string>(`player.team.${i}.type2`) ?? "Normal",
         level: useMapperValue<number>(`player.team.${i}.level`) ?? 0,
@@ -278,6 +287,7 @@ export default function HomePage() {
 
   return (
     <main>
+      <GlobalStyle />
       <div
         style={{
           height: "60px",
@@ -285,7 +295,7 @@ export default function HomePage() {
           backgroundColor: "darkred",
         }}
       />
-      <div style={{ width: "380px", padding: "5px" }}>
+      <div style={{ width: "420px", padding: "5px" }}>
         <h2
           style={{
             display: "flex",
@@ -306,7 +316,6 @@ export default function HomePage() {
             {gameTime.seconds.toString().padStart(2, "0")}
           </span>
         </h2>
-        <GlobalStyle />
         {battleType !== "None" && config.useBattleUi ? (
           <section id="battle">
             <BattlePokemonData
