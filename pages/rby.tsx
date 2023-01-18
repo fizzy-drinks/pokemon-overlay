@@ -11,14 +11,24 @@ const config = {
   useBattleUi: false,
 };
 
-const MoveRow: FC<{ move?: Move; pp: number | null }> = ({ move, pp }) => {
+const MoveRow: FC<{
+  move?: Move;
+  pp: number | null;
+  pokemonTypes: [string, string];
+}> = ({ move, pp, pokemonTypes }) => {
   return (
     <tr>
       <td>
         <TypeColored type={move?.type}>{move?.name ?? "--"}</TypeColored>
       </td>
       <td style={{ textAlign: "right" }}>{move?.name ? pp ?? "--" : "--"}</td>
-      <td style={{ textAlign: "right" }}>{move?.pwr ?? "--"}</td>
+      <td style={{ textAlign: "right" }}>
+        {move?.pwr
+          ? pokemonTypes.includes(move?.type ?? "")
+            ? Math.floor(move.pwr * 1.5)
+            : move.pwr
+          : "--"}
+      </td>
       <td style={{ textAlign: "right" }}>{move?.acc ?? "--"}</td>
     </tr>
   );
@@ -150,6 +160,7 @@ const BattlePokemonData: FC<{
                   move={movelist.find(
                     ({ name }) => name.toLowerCase() === moveName?.toLowerCase()
                   )}
+                  pokemonTypes={[pokemon.type1, pokemon.type2]}
                 />
               ))}
             </tbody>
